@@ -23,9 +23,18 @@ class App extends React.Component {
     // onChildAdded will return data for every child at the reference and every subsequent new child
     onChildAdded(messagesRef, (data) => {
       // Add the subsequent child to local component state, initialising a new array to trigger re-render
+      console.log("data", data);
+      console.log("data.key", data.key);
+      console.log("data.val", data.val());
       this.setState((state) => ({
         // Store message key so we can use it as a key in our list items when rendering messages
-        messages: [...state.messages, { key: data.key, val: data.val() }],
+        messages: [
+          ...state.messages,
+          {
+            key: data.key,
+            val: data.val()["content"] + " " + data.val()["timeStamp"],
+          },
+        ],
       }));
     });
   }
@@ -34,8 +43,11 @@ class App extends React.Component {
   writeData = (e) => {
     e.preventDefault();
     const messageListRef = ref(database, DB_MESSAGES_KEY);
-    const newMessageRef = push(messageListRef);
-    set(newMessageRef, this.state.userInput);
+    const newMessageRef = push(messageListRef); //POST request
+    set(newMessageRef, {
+      content: this.state.userInput,
+      timeStamp: new Date().toLocaleString(),
+    });
     // Reset the input field after submitting form
     this.setState({
       userInput: "",
@@ -43,9 +55,8 @@ class App extends React.Component {
   };
 
   handleInputChange = (e) => {
-    const { name, value } = e.target;
     this.setState({
-      [name]: value,
+      userInput: e.target.value,
     });
   };
 
@@ -54,6 +65,7 @@ class App extends React.Component {
     let messageListItems = this.state.messages.map((message) => (
       <li key={message.key}>{message.val}</li>
     ));
+    console.log("this.state.messages", this.state.messages);
     return (
       <div className="App">
         <header className="App-header">
